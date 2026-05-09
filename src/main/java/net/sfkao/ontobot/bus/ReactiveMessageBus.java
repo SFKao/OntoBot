@@ -1,0 +1,24 @@
+package net.sfkao.ontobot.bus;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
+
+@Service
+public class ReactiveMessageBus implements MessageBus {
+
+    private final Sinks.Many<BusMessage> sink =
+            Sinks.many().multicast().onBackpressureBuffer();
+
+    @Override
+    public void publish(BusMessage message) {
+        sink.tryEmitNext(message);
+    }
+
+    @Override
+    public Flux<BusMessage> flux() {
+        return sink.asFlux();
+    }
+}

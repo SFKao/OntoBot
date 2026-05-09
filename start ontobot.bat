@@ -1,0 +1,1 @@
+C:\Java\jdk-21.0.1\bin\java.exe -jar D:\Programacion\OntoBot\target\ontobot-1.0-SNAPSHOT.jar

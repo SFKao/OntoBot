@@ -1,0 +1,48 @@
+services:
+
+  majimabot:
+    container_name: majimabot
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - 14563:8080
+    depends_on:
+      mongodbmajima:
+        condition: service_healthy
+    networks:
+      - majimaNetwork
+    volumes:
+      - ./data/certs/ca:/certs
+
+  mongodbmajima:
+    image: 'mongo:latest'
+    container_name: majimabotmongo
+    env_file: .env.docker
+    environment:
+      - 'MONGO_INITDB_DATABASE=majimabot'
+    volumes:
+      - ./data/mongoData:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+    networks:
+      - majimaNetwork
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: majimabotmongoexpress
+    restart: unless-stopped
+    env_file: .env.docker
+    ports:
+      - 14564:8081
+    environment:
+      ME_CONFIG_BASICAUTH: false
+    networks:
+      - majimaNetwork
+    depends_on:
+      mongodbmajima:
+        condition: service_healthy
+
+networks:
+  majimaNetwork:
