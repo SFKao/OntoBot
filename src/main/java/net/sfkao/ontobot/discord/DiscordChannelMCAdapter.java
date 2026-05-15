@@ -24,6 +24,8 @@ public class DiscordChannelMCAdapter {
     private static final Snowflake CHANNEL_ID =
             Snowflake.of("1480982745214877777");
 
+    private MessageChannel channel;
+
     private static final Snowflake SELF_BOT_ID =
             Snowflake.of("1491855143594102845");
 
@@ -33,9 +35,28 @@ public class DiscordChannelMCAdapter {
     @PostConstruct
     public void init() {
 
-        listenDiscord();
+        client.getChannelById(CHANNEL_ID)
+                .cast(MessageChannel.class)
+                .doOnNext(ch -> {
 
-        listenBus();
+                    this.channel = ch;
+
+                    System.out.println(
+                            "Discord channel ready: "
+                                    + CHANNEL_ID.asString()
+                    );
+
+                    listenDiscord();
+
+                    listenBus();
+                })
+                .subscribe(
+                        null,
+                        error -> {
+                            System.err.println("Reactor error:");
+                            error.printStackTrace();
+                        }
+                );
     }
 
     private void listenDiscord() {
@@ -54,14 +75,11 @@ public class DiscordChannelMCAdapter {
                                 .orElse(true))
                 .subscribe(event -> {
 
-                    String content =
-                            event.getMessage().getUserData().username()+": " +
-                            event.getMessage()
-                                    .getContent();
-
                     bus.publish(new BusMessage(
                             SOURCE_ID,
-                            content,
+                            event.getMessage().getUserData().username(),
+                            event.getMessage()
+                                    .getContent(),
                             Instant.now()
                     ));
                 });
@@ -74,20 +92,30 @@ public class DiscordChannelMCAdapter {
                         !msg.sourceId()
                                 .equals(SOURCE_ID))
                 .flatMap(this::sendToDiscord)
-                .subscribe();
+                .subscribe(
+                        null,
+                        error -> {
+                            System.err.println(
+                                    "Discord send failed"
+                            );
+
+                            error.printStackTrace();
+                        }
+                );
     }
 
     private Mono<Void> sendToDiscord(
             BusMessage message
     ) {
 
-        return client.getChannelById(CHANNEL_ID)
-                .cast(MessageChannel.class)
-                .flatMap(channel ->
-                        channel.createMessage(
-                                "[" + message.sourceId() + "] "
-                                        + message.content()
-                        ))
+        if (this.channel == null) {
+            return Mono.empty();
+        }
+
+        return this.channel.createMessage(
+                        "**" + message.author() + ":** "
+                                + message.content()
+                )
                 .then();
     }
 }

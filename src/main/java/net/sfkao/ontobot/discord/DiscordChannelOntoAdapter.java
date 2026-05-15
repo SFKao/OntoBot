@@ -24,15 +24,36 @@ public class DiscordChannelOntoAdapter {
     private static final Snowflake CHANNEL_ID =
             Snowflake.of("1492043447639740546");
 
+    private MessageChannel channel;
+
     private final GatewayDiscordClient client;
     private final MessageBus bus;
 
     @PostConstruct
     public void init() {
 
-        listenDiscord();
+        client.getChannelById(CHANNEL_ID)
+                .cast(MessageChannel.class)
+                .doOnNext(ch -> {
 
-        listenBus();
+                    this.channel = ch;
+
+                    System.out.println(
+                            "Discord channel ready: "
+                                    + CHANNEL_ID.asString()
+                    );
+
+                    listenDiscord();
+
+                    listenBus();
+                })
+                .subscribe(
+                        null,
+                        error -> {
+                            System.err.println("Reactor error:");
+                            error.printStackTrace();
+                        }
+                );
     }
 
 
@@ -50,14 +71,11 @@ public class DiscordChannelOntoAdapter {
                                 .orElse(false))
                 .subscribe(event -> {
 
-                    String content =
-                            event.getMessage().getAuthor().map(user -> user.asMember(event.getGuildId().get()).block().getDisplayName()).orElse("") +": " +
-                            event.getMessage()
-                                    .getContent();
-
                     bus.publish(new BusMessage(
                             SOURCE_ID,
-                            content,
+                            event.getMessage().getAuthor().map(user -> user.asMember(event.getGuildId().get()).block().getDisplayName()).orElse(""),
+                            event.getMessage()
+                                    .getContent(),
                             Instant.now()
                     ));
                 });
@@ -70,20 +88,30 @@ public class DiscordChannelOntoAdapter {
                         !msg.sourceId()
                                 .equals(SOURCE_ID))
                 .flatMap(this::sendToDiscord)
-                .subscribe();
+                .subscribe(
+                        null,
+                        error -> {
+                            System.err.println(
+                                    "Discord send failed"
+                            );
+
+                            error.printStackTrace();
+                        }
+                );
     }
 
     private Mono<Void> sendToDiscord(
             BusMessage message
     ) {
 
-        return client.getChannelById(CHANNEL_ID)
-                .cast(MessageChannel.class)
-                .flatMap(channel ->
-                        channel.createMessage(
-                                "[" + message.sourceId() + "] "
+        if (this.channel == null) {
+            return Mono.empty();
+        }
+
+        return this.channel.createMessage(
+                                "**" + message.author() + ":** "
                                         + message.content()
-                        ))
+                        )
                 .then();
     }
 }

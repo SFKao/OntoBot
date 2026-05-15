@@ -206,7 +206,13 @@ public class GPT {
                     sb.append("**").append(split[0]).append("**");
                     for (int i = 1; i < split.length; i++)
                         sb.append(":").append(split[i]);
-                    channel.createMessage(sb.toString()).subscribe();
+                    channel.createMessage(sb.toString()).subscribe(
+                            null,
+                            error -> {
+                                System.err.println("Reactor error:");
+                                error.printStackTrace();
+                            }
+                    );
                 });
     }
 }

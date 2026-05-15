@@ -15,7 +15,7 @@ public class MessageFormatter {
             Map.of(
                     DiscordChannelMCAdapter.SOURCE_ID, "#ff0000",
                     DiscordChannelOntoAdapter.SOURCE_ID, "#5865F2",
-                    WebSocketAdapter.SOURCE_ID, "#00aaff"
+                    OntoAdapter.SOURCE_ID, "#00aaff"
             );
 
     public String format(
@@ -31,6 +31,7 @@ public class MessageFormatter {
         return "<color=" + color + ">["
                 + message.sourceId()
                 + "] </color>"
+                +message.author()+": "
                 + message.content();
     }
 

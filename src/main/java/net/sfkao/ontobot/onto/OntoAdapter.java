@@ -2,8 +2,10 @@ package net.sfkao.ontobot.onto;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import net.sfkao.ontobot.bus.BusMessage;
 import net.sfkao.ontobot.bus.MessageBus;
+import net.sfkao.ontobot.constants.SourceConstants;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
@@ -17,7 +19,7 @@ import java.time.Instant;
 
 @Component
 @RequiredArgsConstructor
-public class WebSocketAdapter {
+public class OntoAdapter {
 
     public static final String SOURCE_ID =
             "ONTO";
@@ -34,7 +36,7 @@ public class WebSocketAdapter {
     private final MessageFormatter formatter;
     private final MessageDeduplicator deduplicator;
 
-    private final ReactorNettyWebSocketClient client =
+    private final ReactorNettyWebSocketClient webSocketClient =
             new ReactorNettyWebSocketClient();
 
     /*
@@ -53,9 +55,12 @@ public class WebSocketAdapter {
         listenBus();
     }
 
+    @SneakyThrows
     private void connect() {
 
-        client.execute(
+        Thread.sleep(3000);
+
+        webSocketClient.execute(
                         URI.create(WS_URL),
                         session -> {
 
@@ -117,7 +122,13 @@ public class WebSocketAdapter {
 
                     error.printStackTrace();
                 })
-                .subscribe();
+                .subscribe(
+                        null,
+                        error -> {
+                            System.err.println("Reactor error:");
+                            error.printStackTrace();
+                        }
+                );
     }
 
     private void handleIncomingMessage(
@@ -128,8 +139,7 @@ public class WebSocketAdapter {
                 && content.equals(
                 WEBSOCKET_STARTED_MESSAGE
         )) {
-
-            content = "Onto Abierto!";
+            content = "[SYS]Onto Abierto!";
             iniciado = true;
         }
 
@@ -137,17 +147,34 @@ public class WebSocketAdapter {
             return;
         }
 
+        // Si el mensaje es una notificacion
+        if(content.startsWith("[SYS]")){
+            if(!content.contains("se ha unido al servidor!") && !content.contains( "has left the server.") && !content.contains("Onto Abierto!"))
+                return;
+        }
+
         content = formatter.cleanMessage(content);
 
         /*
          * Echo del websocket
          */
-        if (deduplicator.isDuplicate(content)) {
-            return;
+        for(String sourceId : SourceConstants.SOURCES){
+            if(content.contains("[" + sourceId + "]")){
+                return;
+            }
+        }
+
+        String author;
+        if(content.startsWith("[SYS]")){
+            author = "Onto";
+        }else{
+            author = content.split(":")[0].replace("**", "").trim();
+            content = content.substring(content.indexOf(":") + 1).trim();
         }
 
         bus.publish(new BusMessage(
                 SOURCE_ID,
+                author,
                 content,
                 Instant.now()
         ));
@@ -171,7 +198,8 @@ public class WebSocketAdapter {
          * porque el websocket devuelve
          * el mensaje sin tags
          */
-        deduplicator.put(message.content());
+
+        deduplicator.put(message);
 
         String formatted =
                 formatter.format(message);
