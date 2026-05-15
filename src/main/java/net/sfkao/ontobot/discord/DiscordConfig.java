@@ -18,7 +18,7 @@ public class DiscordConfig {
         GatewayDiscordClient client = DiscordClientBuilder.create(TOKEN)
                 .build()
                 .gateway()
-                .setEnabledIntents(IntentSet.of(Intent.MESSAGE_CONTENT, Intent.GUILD_MESSAGES))
+                .setEnabledIntents(IntentSet.of(Intent.MESSAGE_CONTENT, Intent.GUILD_MESSAGES, Intent.GUILD_MEMBERS))
                 .login()
                 .block();
 
