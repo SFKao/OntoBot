@@ -34,7 +34,6 @@ public class OntoAdapter {
 
     private final MessageBus bus;
     private final MessageFormatter formatter;
-    private final MessageDeduplicator deduplicator;
 
     private final ReactorNettyWebSocketClient webSocketClient =
             new ReactorNettyWebSocketClient();
@@ -50,9 +49,9 @@ public class OntoAdapter {
     @PostConstruct
     public void init() {
 
-        connect();
+        this.connect();
 
-        listenBus();
+        this.listenBus();
     }
 
     @SneakyThrows
@@ -60,8 +59,8 @@ public class OntoAdapter {
 
         Thread.sleep(3000);
 
-        webSocketClient.execute(
-                        URI.create(WS_URL),
+        this.webSocketClient.execute(
+                        URI.create(OntoAdapter.WS_URL),
                         session -> {
 
                             System.out.println(
@@ -71,7 +70,7 @@ public class OntoAdapter {
                             /*
                              * Entrada
                              */
-                            Mono<Void> inbound =
+                            final Mono<Void> inbound =
                                     session.receive()
                                             .map(WebSocketMessage::getPayloadAsText)
                                             .doOnNext(this::handleIncomingMessage)
@@ -93,9 +92,9 @@ public class OntoAdapter {
                             /*
                              * Salida persistente
                              */
-                            Mono<Void> outbound =
+                            final Mono<Void> outbound =
                                     session.send(
-                                            outgoing.asFlux()
+                                            this.outgoing.asFlux()
                                                     .map(session::textMessage)
                                     );
 
@@ -135,12 +134,12 @@ public class OntoAdapter {
             String content
     ) {
 
-        if (!iniciado
+        if (!OntoAdapter.iniciado
                 && content.equals(
-                WEBSOCKET_STARTED_MESSAGE
+                OntoAdapter.WEBSOCKET_STARTED_MESSAGE
         )) {
             content = "[SYS]Onto Abierto!";
-            iniciado = true;
+            OntoAdapter.iniciado = true;
         }
 
         if (content.startsWith("[WSM]")) {
@@ -148,32 +147,33 @@ public class OntoAdapter {
         }
 
         // Si el mensaje es una notificacion
-        if(content.startsWith("[SYS]")){
-            if(!content.contains("se ha unido al servidor!") && !content.contains( "has left the server.") && !content.contains("Onto Abierto!"))
-                return;
-        }
-
-        content = formatter.cleanMessage(content);
-
-        /*
-         * Echo del websocket
-         */
-        for(String sourceId : SourceConstants.SOURCES){
-            if(content.contains("[" + sourceId + "]")){
+        if (content.startsWith("[SYS]")) {
+            if (!content.contains("se ha unido al servidor!") && !content.contains("has left the server.") && !content.contains("Onto Abierto!")) {
                 return;
             }
         }
 
-        String author;
-        if(content.startsWith("[SYS]")){
+        content = this.formatter.cleanMessage(content);
+
+        /*
+         * Echo del websocket
+         */
+        for (final String sourceId : SourceConstants.SOURCES) {
+            if (content.contains("[" + sourceId + "]")) {
+                return;
+            }
+        }
+
+        final String author;
+        if (content.startsWith("[SYS]")) {
             author = "Onto";
-        }else{
+        } else {
             author = content.split(":")[0].replace("**", "").trim();
             content = content.substring(content.indexOf(":") + 1).trim();
         }
 
-        bus.publish(new BusMessage(
-                SOURCE_ID,
+        this.bus.publish(new BusMessage(
+                OntoAdapter.SOURCE_ID,
                 author,
                 content,
                 Instant.now()
@@ -182,30 +182,21 @@ public class OntoAdapter {
 
     private void listenBus() {
 
-        bus.flux()
+        this.bus.flux()
                 .filter(msg ->
                         !msg.sourceId()
-                                .equals(SOURCE_ID))
+                                .equals(OntoAdapter.SOURCE_ID))
                 .subscribe(this::sendToWebSocket);
     }
 
     private void sendToWebSocket(
-            BusMessage message
+            final BusMessage message
     ) {
+        final String formatted =
+                this.formatter.format(message);
 
-        /*
-         * Guardamos el contenido limpio
-         * porque el websocket devuelve
-         * el mensaje sin tags
-         */
-
-        deduplicator.put(message);
-
-        String formatted =
-                formatter.format(message);
-
-        Sinks.EmitResult result =
-                outgoing.tryEmitNext(formatted);
+        final Sinks.EmitResult result =
+                this.outgoing.tryEmitNext(formatted);
 
         if (result.isFailure()) {
 

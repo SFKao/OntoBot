@@ -1,8 +1,6 @@
 package net.sfkao.ontobot.bus;
 
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Hooks;
@@ -15,17 +13,17 @@ public class ReactiveMessageBus implements MessageBus {
             Sinks.many().multicast().onBackpressureBuffer();
 
     @Override
-    public void publish(BusMessage message) {
-        sink.tryEmitNext(message);
+    public void publish(final BusMessage message) {
+        this.sink.tryEmitNext(message);
     }
 
     @Override
     public Flux<BusMessage> flux() {
-        return sink.asFlux();
+        return this.sink.asFlux();
     }
 
     @PostConstruct
-    public void setupHooks() {
+    public static void setupHooks() {
         Hooks.onErrorDropped(error -> {
             System.err.println("DROPPED REACTOR ERROR:");
             error.printStackTrace();

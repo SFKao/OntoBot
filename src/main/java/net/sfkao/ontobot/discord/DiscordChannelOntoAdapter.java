@@ -8,14 +8,11 @@ import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.PartialMember;
-import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.GuildMessageChannel;
-import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Image;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import net.sfkao.ontobot.bus.BusMessage;
 import net.sfkao.ontobot.bus.MessageBus;
 import org.springframework.stereotype.Component;
@@ -23,6 +20,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Instant;
+
 @Component
 @RequiredArgsConstructor
 public class DiscordChannelOntoAdapter {
@@ -34,7 +32,9 @@ public class DiscordChannelOntoAdapter {
             Snowflake.of("1492043447639740546");
 
 
-    /** Sentinel stored in cache when a username has no matching guild member. */
+    /**
+     * Sentinel stored in cache when a username has no matching guild member.
+     */
     private static final String NO_AVATAR = "";
 
     private static final String webhookUrl = "https://discord.com/api/webhooks/1504739568857911296/y7_GjRm5BIQNEfMdZ_nDLGbwMGpR7P6EHrL7350PzOEjkJoeGDS1ljsUw9ZhdvfWtx0Y";
@@ -43,7 +43,9 @@ public class DiscordChannelOntoAdapter {
     private WebhookClient webhookClient;
     private Guild guild;
 
-    /** username → avatar URL, or NO_AVATAR if the user was not found in the guild. */
+    /**
+     * username → avatar URL, or NO_AVATAR if the user was not found in the guild.
+     */
     private final AvatarCache avatarCache;
 
     private final GatewayDiscordClient client;
@@ -52,23 +54,23 @@ public class DiscordChannelOntoAdapter {
     @PostConstruct
     public void init() {
 
-        String[] parts = webhookUrl.split("/");
-        ownWebhookId = Snowflake.of(parts[parts.length - 2]);
+        final String[] parts = DiscordChannelOntoAdapter.webhookUrl.split("/");
+        this.ownWebhookId = Snowflake.of(parts[parts.length - 2]);
 
-        webhookClient = new WebhookClientBuilder(webhookUrl)
+        this.webhookClient = new WebhookClientBuilder(DiscordChannelOntoAdapter.webhookUrl)
                 .setWait(false)
                 .build();
 
         // Fetch the guild once so we can search members for avatar lookup.
-        client.getChannelById(CHANNEL_ID)
+        this.client.getChannelById(DiscordChannelOntoAdapter.CHANNEL_ID)
                 .cast(GuildMessageChannel.class)
                 .flatMap(GuildMessageChannel::getGuild)
                 .subscribe(
                         g -> {
                             this.guild = g;
                             System.out.println("Webhook adapter ready — guild: " + g.getName());
-                            listenDiscord();
-                            listenBus();
+                            this.listenDiscord();
+                            this.listenBus();
                         },
                         error -> {
                             System.err.println("DiscordChannelMCAdapter init error:");
@@ -79,8 +81,8 @@ public class DiscordChannelOntoAdapter {
 
     @PreDestroy
     public void destroy() {
-        if (webhookClient != null) {
-            webhookClient.close();
+        if (this.webhookClient != null) {
+            this.webhookClient.close();
         }
     }
 
@@ -90,13 +92,13 @@ public class DiscordChannelOntoAdapter {
 
     private void listenDiscord() {
 
-        client.on(MessageCreateEvent.class)
+        this.client.on(MessageCreateEvent.class)
                 .filter(event -> event.getMessage()
                         .getChannelId()
-                        .equals(CHANNEL_ID))
+                        .equals(DiscordChannelOntoAdapter.CHANNEL_ID))
                 .filter(event -> event.getMessage()
                         .getWebhookId()
-                        .map(id -> !id.equals(ownWebhookId))
+                        .map(id -> !id.equals(this.ownWebhookId))
                         .orElse(true))
                 .flatMap(event -> event.getMessage()
                         .getAuthorAsMember()
@@ -104,12 +106,12 @@ public class DiscordChannelOntoAdapter {
                         .defaultIfEmpty(event.getMessage()              // fallback for webhooks /
                                 .getUserData().username())              // users outside the guild
                         .map(displayName -> new BusMessage(
-                                SOURCE_ID,
+                                DiscordChannelOntoAdapter.SOURCE_ID,
                                 displayName,
                                 event.getMessage().getContent(),
                                 Instant.now()
                         )))
-                .subscribe(bus::publish);
+                .subscribe(this.bus::publish);
     }
 
     // -------------------------------------------------------------------------
@@ -118,8 +120,8 @@ public class DiscordChannelOntoAdapter {
 
     private void listenBus() {
 
-        bus.flux()
-                .filter(msg -> !msg.sourceId().equals(SOURCE_ID))
+        this.bus.flux()
+                .filter(msg -> !msg.sourceId().equals(DiscordChannelOntoAdapter.SOURCE_ID))
                 .flatMap(this::sendToDiscord)
                 .subscribe(
                         null,
@@ -130,23 +132,23 @@ public class DiscordChannelOntoAdapter {
                 );
     }
 
-    private Mono<Void> sendToDiscord(BusMessage message) {
+    private Mono<Void> sendToDiscord(final BusMessage message) {
 
-        if (webhookClient == null) {
+        if (this.webhookClient == null) {
             return Mono.empty();
         }
 
-        return resolveAvatarUrl(message.author())
+        return this.resolveAvatarUrl(message.author())
                 .flatMap(avatarUrl -> {
-                    WebhookMessageBuilder builder = new WebhookMessageBuilder()
+                    final WebhookMessageBuilder builder = new WebhookMessageBuilder()
                             .setUsername(message.author())
                             .setContent(message.content());
 
-                    if (!avatarUrl.equals(NO_AVATAR)) {
+                    if (!avatarUrl.equals(DiscordChannelOntoAdapter.NO_AVATAR)) {
                         builder.setAvatarUrl(avatarUrl);
                     }
 
-                    return Mono.fromFuture(() -> webhookClient.send(builder.build()))
+                    return Mono.fromFuture(() -> this.webhookClient.send(builder.build()))
                             .subscribeOn(Schedulers.boundedElastic())
                             .then();
                 });
@@ -162,29 +164,29 @@ public class DiscordChannelOntoAdapter {
      * or {@link #NO_AVATAR} if no match is found.
      * Results are cached so the guild member list is only queried once per username.
      */
-    private Mono<String> resolveAvatarUrl(String username) {
+    private Mono<String> resolveAvatarUrl(final String username) {
 
         // Return immediately if already cached (hit or confirmed miss).
-        String cached = avatarCache.get(username);
+        final String cached = this.avatarCache.get(username);
         if (cached != null) {
             return Mono.just(cached);
         }
 
-        if (guild == null) {
-            return Mono.just(NO_AVATAR);
+        if (this.guild == null) {
+            return Mono.just(DiscordChannelOntoAdapter.NO_AVATAR);
         }
 
-        return guild.getMembers()
+        return this.guild.getMembers()
                 .filter(member -> member.getDisplayName().equalsIgnoreCase(username))
                 .next()
                 .map(member -> member.getAvatarUrl(Image.Format.PNG)
                         .orElseGet(member::getDefaultAvatarUrl))
                 // Cache the found URL.
-                .doOnNext(url -> avatarCache.put(username, url))
+                .doOnNext(url -> this.avatarCache.put(username, url))
                 // If no guild member matched, cache the sentinel and return it.
                 .switchIfEmpty(Mono.fromCallable(() -> {
-                    avatarCache.put(username, NO_AVATAR);
-                    return NO_AVATAR;
+                    this.avatarCache.put(username, DiscordChannelOntoAdapter.NO_AVATAR);
+                    return DiscordChannelOntoAdapter.NO_AVATAR;
                 }));
     }
 }

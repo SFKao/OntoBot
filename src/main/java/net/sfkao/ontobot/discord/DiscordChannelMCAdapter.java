@@ -6,7 +6,6 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.channel.MessageChannel;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import net.sfkao.ontobot.bus.BusMessage;
 import net.sfkao.ontobot.bus.MessageBus;
 import org.springframework.stereotype.Component;
@@ -42,7 +41,7 @@ public class DiscordChannelMCAdapter {
     @PostConstruct
     public void init() {
 
-        client.getChannelById(CHANNEL_ID)
+        this.client.getChannelById(DiscordChannelMCAdapter.CHANNEL_ID)
                 .cast(MessageChannel.class)
                 .doOnNext(ch -> {
 
@@ -50,12 +49,12 @@ public class DiscordChannelMCAdapter {
 
                     System.out.println(
                             "Discord channel ready: "
-                                    + CHANNEL_ID.asString()
+                                    + DiscordChannelMCAdapter.CHANNEL_ID.asString()
                     );
 
-                    listenDiscord();
+                    this.listenDiscord();
 
-                    listenBus();
+                    this.listenBus();
                 })
                 .subscribe(
                         null,
@@ -68,11 +67,11 @@ public class DiscordChannelMCAdapter {
 
     private void listenDiscord() {
 
-        client.on(MessageCreateEvent.class)
+        this.client.on(MessageCreateEvent.class)
                 .filter(event ->
                         event.getMessage()
                                 .getChannelId()
-                                .equals(CHANNEL_ID))
+                                .equals(DiscordChannelMCAdapter.CHANNEL_ID))
                 .filter(event ->
                         !event.getMessage()
                                 .getContent()
@@ -82,13 +81,13 @@ public class DiscordChannelMCAdapter {
                                 .getAuthor()
                                 .map(user ->
                                         !user.getId()
-                                                .equals(SELF_BOT_ID))
+                                                .equals(DiscordChannelMCAdapter.SELF_BOT_ID))
                                 .orElse(true))
                 .subscribe(event -> {
 
-                    bus.publish(new BusMessage(
-                            SOURCE_ID,
-                            DICTTIONARY_MC_TO_USERNAME.getOrDefault(event.getMessage().getUserData().username(), event.getMessage().getUserData().username()),
+                    this.bus.publish(new BusMessage(
+                            DiscordChannelMCAdapter.SOURCE_ID,
+                            this.DICTTIONARY_MC_TO_USERNAME.getOrDefault(event.getMessage().getUserData().username(), event.getMessage().getUserData().username()),
                             event.getMessage()
                                     .getContent(),
                             Instant.now()
@@ -98,10 +97,10 @@ public class DiscordChannelMCAdapter {
 
     private void listenBus() {
 
-        bus.flux()
+        this.bus.flux()
                 .filter(msg ->
                         !msg.sourceId()
-                                .equals(SOURCE_ID))
+                                .equals(DiscordChannelMCAdapter.SOURCE_ID))
                 .flatMap(this::sendToDiscord)
                 .subscribe(
                         null,
@@ -116,7 +115,7 @@ public class DiscordChannelMCAdapter {
     }
 
     private Mono<Void> sendToDiscord(
-            BusMessage message
+            final BusMessage message
     ) {
 
         if (this.channel == null) {

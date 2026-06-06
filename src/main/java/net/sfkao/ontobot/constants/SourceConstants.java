@@ -9,16 +9,14 @@ import java.util.List;
 
 public class SourceConstants {
 
-
-
     public static final String DISCORD_CHANNEL_ONTO = DiscordChannelOntoAdapter.SOURCE_ID;
     public static final String DISCORD_CHANNEL_MC = DiscordChannelMCAdapter.SOURCE_ID;
     public static final String ONTO = OntoAdapter.SOURCE_ID;
 
     public static final List<String> SOURCES = List.of(
-            DISCORD_CHANNEL_ONTO,
-            DISCORD_CHANNEL_MC,
-            ONTO,
+            SourceConstants.DISCORD_CHANNEL_ONTO,
+            SourceConstants.DISCORD_CHANNEL_MC,
+            SourceConstants.ONTO,
             ChatAdapter.SOURCE_ID
     );
 
