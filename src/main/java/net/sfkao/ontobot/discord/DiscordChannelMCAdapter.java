@@ -13,10 +13,17 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 public class DiscordChannelMCAdapter {
+
+    Map<String, String> DICTTIONARY_MC_TO_USERNAME =
+            Map.of(
+                    "SFKao", "Kao",
+                    "ElshOwO", "Elsho"
+            );
 
     public static final String SOURCE_ID =
             "MC";
@@ -67,6 +74,10 @@ public class DiscordChannelMCAdapter {
                                 .getChannelId()
                                 .equals(CHANNEL_ID))
                 .filter(event ->
+                        !event.getMessage()
+                                .getContent()
+                                .startsWith("[SYS]"))
+                .filter(event ->
                         event.getMessage()
                                 .getAuthor()
                                 .map(user ->
@@ -77,7 +88,7 @@ public class DiscordChannelMCAdapter {
 
                     bus.publish(new BusMessage(
                             SOURCE_ID,
-                            event.getMessage().getUserData().username(),
+                            DICTTIONARY_MC_TO_USERNAME.getOrDefault(event.getMessage().getUserData().username(), event.getMessage().getUserData().username()),
                             event.getMessage()
                                     .getContent(),
                             Instant.now()
