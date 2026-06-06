@@ -12,12 +12,12 @@ import org.springframework.context.annotation.Configuration;
 public class DiscordConfig {
 
     @Value("${discord.token}")
-    private static String TOKEN;
+    private String TOKEN;
 
     @Bean
-    public static GatewayDiscordClient gatewayClient() {
+    public GatewayDiscordClient gatewayClient() {
 
-        final GatewayDiscordClient client = DiscordClientBuilder.create(DiscordConfig.TOKEN)
+        final GatewayDiscordClient client = DiscordClientBuilder.create(this.TOKEN)
                 .build()
                 .gateway()
                 .setEnabledIntents(IntentSet.of(Intent.MESSAGE_CONTENT, Intent.GUILD_MESSAGES, Intent.GUILD_MEMBERS))
