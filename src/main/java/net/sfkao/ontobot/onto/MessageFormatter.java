@@ -20,30 +20,30 @@ public class MessageFormatter {
                     ChatAdapter.SOURCE_ID, "#00ff00"
             );
 
-    public String format(
-            BusMessage message
+    public static String format(
+            final BusMessage message
     ) {
 
-        String color =
-                COLORS.getOrDefault(
+        final String color =
+                MessageFormatter.COLORS.getOrDefault(
                         message.sourceId(),
                         "#ffffff"
                 );
 
         return "<color=" + color + ">["
                 + message.sourceId()
-                + "] </color>"
-                +message.author()+": "
+                + "] </color><color=#3D3FA1>"
+                + message.author() + "</color>: "
                 + message.content();
     }
 
-    public String cleanMessage(String content) {
+    public static String cleanMessage(String content) {
 
         content = content.replace("</color>", "");
-        AtomicReference<String> s = new AtomicReference<>(content);
-        COLORS.values().forEach(c->
-                        s.set(s.get().replace("<color=" + c + ">", ""))
-                );
+        final AtomicReference<String> s = new AtomicReference<>(content);
+        MessageFormatter.COLORS.values().forEach(c ->
+                s.set(s.get().replace("<color=" + c + ">", ""))
+        );
         return s.get();
     }
 }

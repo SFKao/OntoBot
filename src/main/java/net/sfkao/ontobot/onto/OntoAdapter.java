@@ -153,7 +153,7 @@ public class OntoAdapter {
             }
         }
 
-        content = this.formatter.cleanMessage(content);
+        content = MessageFormatter.cleanMessage(content);
 
         /*
          * Echo del websocket
@@ -193,7 +193,7 @@ public class OntoAdapter {
             final BusMessage message
     ) {
         final String formatted =
-                this.formatter.format(message);
+                MessageFormatter.format(message);
 
         final Sinks.EmitResult result =
                 this.outgoing.tryEmitNext(formatted);

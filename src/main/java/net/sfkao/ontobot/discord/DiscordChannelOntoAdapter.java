@@ -26,7 +26,7 @@ import java.time.Instant;
 public class DiscordChannelOntoAdapter {
 
     public static final String SOURCE_ID =
-            "Discord";
+            "DC";
 
     private static final Snowflake CHANNEL_ID =
             Snowflake.of("1492043447639740546");
