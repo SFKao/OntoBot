@@ -15,6 +15,7 @@ import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import net.sfkao.ontobot.bus.BusMessage;
 import net.sfkao.ontobot.bus.MessageBus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -37,7 +38,8 @@ public class DiscordChannelOntoAdapter {
      */
     private static final String NO_AVATAR = "";
 
-    private static final String webhookUrl = "https://discord.com/api/webhooks/1504739568857911296/y7_GjRm5BIQNEfMdZ_nDLGbwMGpR7P6EHrL7350PzOEjkJoeGDS1ljsUw9ZhdvfWtx0Y";
+    @Value("${discord.onto.webhookurl}")
+    private String webhookUrl;
 
     private Snowflake ownWebhookId;
     private WebhookClient webhookClient;
@@ -54,10 +56,10 @@ public class DiscordChannelOntoAdapter {
     @PostConstruct
     public void init() {
 
-        final String[] parts = DiscordChannelOntoAdapter.webhookUrl.split("/");
+        final String[] parts = this.webhookUrl.split("/");
         this.ownWebhookId = Snowflake.of(parts[parts.length - 2]);
 
-        this.webhookClient = new WebhookClientBuilder(DiscordChannelOntoAdapter.webhookUrl)
+        this.webhookClient = new WebhookClientBuilder(this.webhookUrl)
                 .setWait(false)
                 .build();
 
