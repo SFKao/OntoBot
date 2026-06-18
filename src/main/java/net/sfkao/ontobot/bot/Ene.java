@@ -52,7 +52,7 @@ public class Ene {
                 if (busMessage.content().toLowerCase().contains(keyword.toLowerCase())) {
                     if (commandToExecute == null) {
                         commandToExecute = command;
-                    } else {
+                    } else if (commandToExecute != command) {
                         // More than one command triggered, ignore
                         return;
                     }
@@ -64,5 +64,4 @@ public class Ene {
             this.bus.publish(response);
         }
     }
-
 }
