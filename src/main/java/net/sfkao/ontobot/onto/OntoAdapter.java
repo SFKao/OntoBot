@@ -17,6 +17,13 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 
+/**
+ * OntoAdapter is a component that connects to a WebSocket server and relays messages between the WebSocket and a message bus.
+ * It listens for incoming messages from the WebSocket, processes them, and publishes them to the message bus.
+ * It also listens for messages from the message bus and sends them to the WebSocket.
+ *
+ * @author Kao
+ */
 @Component
 @RequiredArgsConstructor
 public class OntoAdapter {
@@ -24,17 +31,27 @@ public class OntoAdapter {
     public static final String SOURCE_ID =
             "ONTO";
 
+    /**
+     * The URL of the On-Together WebSocket server to connect to.
+     * The websocket comes from a mod.
+     */
     private static final String WS_URL =
             "ws://127.0.0.1:8765/";
 
+    /**
+     * The message indicating that the WebSocket connection has been established.
+     * The websocket sends this message when a client connects to the server.
+     */
     public static final String WEBSOCKET_STARTED_MESSAGE =
             "[WSM] Client connected: 127.0.0.1";
 
     static boolean iniciado = false;
 
     private final MessageBus bus;
-    private final MessageFormatter formatter;
 
+    /**
+     * The WebSocket client used to connect to the On-Together WebSocket server.
+     */
     private final ReactorNettyWebSocketClient webSocketClient =
             new ReactorNettyWebSocketClient();
 
@@ -46,6 +63,9 @@ public class OntoAdapter {
                     .multicast()
                     .onBackpressureBuffer();
 
+    /**
+     * Initializes the OntoAdapter by connecting to the WebSocket server and setting up listeners for both WebSocket messages and bus messages.
+     */
     @PostConstruct
     public void init() {
 
@@ -54,6 +74,12 @@ public class OntoAdapter {
         this.listenBus();
     }
 
+    /**
+     * Connects to the On-Together WebSocket server and sets up the inbound and outbound message streams.
+     * The inbound stream listens for incoming messages from the WebSocket, processes them, and publishes them to the message bus.
+     * The outbound stream listens for messages from the message bus and sends them to the WebSocket.
+     * If the connection is lost, it will retry connecting after a fixed delay.
+     */
     @SneakyThrows
     private void connect() {
 
@@ -130,6 +156,12 @@ public class OntoAdapter {
                 );
     }
 
+    /**
+     * Handles an incoming message from the WebSocket.
+     * It processes the message content, filters out unwanted messages, and publishes valid messages to the message bus.
+     *
+     * @param content The content of the incoming WebSocket message.
+     */
     private void handleIncomingMessage(
             String content
     ) {
@@ -180,6 +212,10 @@ public class OntoAdapter {
         ));
     }
 
+    /**
+     * Listens for messages on the message bus and sends them to the WebSocket.
+     * It filters out messages originating from this adapter to avoid echoing messages back to the WebSocket.
+     */
     private void listenBus() {
 
         this.bus.flux()
@@ -189,6 +225,13 @@ public class OntoAdapter {
                 .subscribe(this::sendToWebSocket);
     }
 
+    /**
+     * Sends a message to the WebSocket.
+     * It formats the message and attempts to emit it to the outgoing sink.
+     * If the emission fails, it logs an error message.
+     *
+     * @param message The BusMessage to be sent to the WebSocket.
+     */
     private void sendToWebSocket(
             final BusMessage message
     ) {

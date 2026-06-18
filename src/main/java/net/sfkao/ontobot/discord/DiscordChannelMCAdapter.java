@@ -14,10 +14,19 @@ import reactor.core.publisher.Mono;
 import java.time.Instant;
 import java.util.Map;
 
+/**
+ * DiscordChannelMCAdapter is a component that listens to a specific Discord channel and relays messages to a message bus.
+ * It also listens to the message bus for messages from other sources and sends them to the Discord channel.
+ *
+ * @author Kao
+ */
 @Component
 @RequiredArgsConstructor
 public class DiscordChannelMCAdapter {
 
+    /**
+     * A mapping of Minecraft usernames to their corresponding Discord usernames.
+     */
     Map<String, String> DICTTIONARY_MC_TO_USERNAME =
             Map.of(
                     "SFKao", "Kao",
@@ -27,17 +36,26 @@ public class DiscordChannelMCAdapter {
     public static final String SOURCE_ID =
             "MC";
 
+    /**
+     * The ID of the Discord channel to listen to and send messages to.
+     */
     private static final Snowflake CHANNEL_ID =
             Snowflake.of("1480982745214877777");
 
     private MessageChannel channel;
 
+    /**
+     * The ID of the bot itself, used to filter out messages sent by the bot.
+     */
     private static final Snowflake SELF_BOT_ID =
             Snowflake.of("1491855143594102845");
 
     private final GatewayDiscordClient client;
     private final MessageBus bus;
 
+    /**
+     * Initializes the DiscordChannelMCAdapter by retrieving the specified Discord channel and setting up listeners for both Discord messages and bus messages.
+     */
     @PostConstruct
     public void init() {
 
@@ -65,6 +83,10 @@ public class DiscordChannelMCAdapter {
                 );
     }
 
+    /**
+     * Sets up a listener for messages in the specified Discord channel.
+     * It filters out system messages and messages sent by the bot itself, and publishes valid messages to the message bus.
+     */
     private void listenDiscord() {
 
         this.client.on(MessageCreateEvent.class)
@@ -95,6 +117,10 @@ public class DiscordChannelMCAdapter {
                 });
     }
 
+    /**
+     * Sets up a listener for messages on the message bus.
+     * It filters out messages originating from this adapter and sends valid messages to the Discord channel.
+     */
     private void listenBus() {
 
         this.bus.flux()
@@ -114,6 +140,12 @@ public class DiscordChannelMCAdapter {
                 );
     }
 
+    /**
+     * Sends a message to the Discord channel.
+     *
+     * @param message The BusMessage to be sent to Discord.
+     * @return A Mono that completes when the message has been sent.
+     */
     private Mono<Void> sendToDiscord(
             final BusMessage message
     ) {

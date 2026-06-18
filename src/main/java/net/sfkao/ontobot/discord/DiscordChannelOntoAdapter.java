@@ -22,6 +22,12 @@ import reactor.core.scheduler.Schedulers;
 
 import java.time.Instant;
 
+/**
+ * DiscordChannelOntoAdapter is a component that listens to a specific Discord channel and relays messages to a message bus.
+ * It also listens to the message bus for messages from other sources and sends them to the Discord channel via a webhook.
+ *
+ * @author Kao
+ */
 @Component
 @RequiredArgsConstructor
 public class DiscordChannelOntoAdapter {
@@ -134,6 +140,15 @@ public class DiscordChannelOntoAdapter {
                 );
     }
 
+    /**
+     * Sends a message to the Discord webhook.
+     * If the webhook client is not initialized, returns an empty Mono.
+     * Resolves the avatar URL for the message author and constructs a WebhookMessageBuilder.
+     * Sends the message asynchronously and returns a Mono that completes when the send operation is done.
+     *
+     * @param message The BusMessage to be sent to Discord.
+     * @return A Mono that completes when the message is sent, or an empty Mono if the webhook client is not initialized.
+     */
     private Mono<Void> sendToDiscord(final BusMessage message) {
 
         if (this.webhookClient == null) {

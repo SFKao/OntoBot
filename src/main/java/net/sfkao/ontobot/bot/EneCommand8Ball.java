@@ -7,6 +7,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+/**
+ * Implementation of the EneCommand interface that simulates a Magic 8-Ball.
+ * When executed, it provides a random response from a predefined list of possible answers.
+ *
+ * @author Kao
+ */
 @Component
 public class EneCommand8Ball implements EneCommand {
 

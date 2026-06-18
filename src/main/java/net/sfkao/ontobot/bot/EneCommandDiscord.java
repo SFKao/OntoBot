@@ -5,6 +5,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
+/**
+ * Implementation of the EneCommand interface that provides a link to the Discord server.
+ * When executed, it responds with a predefined message containing the Discord link.
+ *
+ * @author Kao
+ */
 @Component
 public class EneCommandDiscord implements EneCommand {
 

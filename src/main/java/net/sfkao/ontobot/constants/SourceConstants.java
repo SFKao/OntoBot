@@ -8,6 +8,12 @@ import net.sfkao.ontobot.widget.ChatAdapter;
 
 import java.util.List;
 
+/**
+ * This class contains constants representing the source identifiers for various adapters used in the OntoBot application.
+ * It provides a centralized location for managing source IDs, making it easier to reference them throughout the codebase.
+ *
+ * @author Kao
+ */
 public class SourceConstants {
 
     public static final String DISCORD_CHANNEL_ONTO = DiscordChannelOntoAdapter.SOURCE_ID;

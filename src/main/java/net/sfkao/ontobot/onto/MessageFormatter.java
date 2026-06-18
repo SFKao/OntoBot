@@ -10,6 +10,12 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * MessageFormatter is a utility class that provides methods for formatting and cleaning messages.
+ * It formats messages with color codes based on their source and can clean messages by removing color tags.
+ *
+ * @author Kao
+ */
 @Component
 public class MessageFormatter {
 
@@ -22,6 +28,12 @@ public class MessageFormatter {
                     Ene.SOURCE_ID, "#00FFFF"
             );
 
+    /**
+     * Formats a BusMessage into a string with color codes based on its source.
+     *
+     * @param message The BusMessage to format.
+     * @return A formatted string representation of the message.
+     */
     public static String format(
             final BusMessage message
     ) {
@@ -39,6 +51,12 @@ public class MessageFormatter {
                 + message.content();
     }
 
+    /**
+     * Cleans a message by removing color tags.
+     *
+     * @param content The message content to clean.
+     * @return The cleaned message content without color tags.
+     */
     public static String cleanMessage(String content) {
 
         content = content.replace("</color>", "");

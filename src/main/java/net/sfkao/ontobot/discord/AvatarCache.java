@@ -6,6 +6,15 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * AvatarCache is a component that manages a cache of user avatars.
+ * It maps usernames to their corresponding avatar URLs, allowing for quick retrieval of avatar information.
+ * If a user is not found in the guild, the cache will store a special value (NO_AVATAR) to indicate this.
+ * <p>
+ * This class is thread-safe and can be used in concurrent environments.
+ *
+ * @author Kao
+ */
 @Component
 public class AvatarCache {
 

@@ -6,6 +6,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Sinks;
 
+/**
+ * ReactiveMessageBus is an implementation of the MessageBus interface that uses Project Reactor's Sinks to provide a reactive message bus.
+ * It allows publishing messages and subscribing to a stream of messages in a non-blocking manner.
+ *
+ * @author Kao
+ */
 @Service
 public class ReactiveMessageBus implements MessageBus {
 

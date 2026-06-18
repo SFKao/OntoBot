@@ -1,5 +1,10 @@
 package net.sfkao.ontobot.bot;
 
+/**
+ * Enum representing the priority levels of commands.
+ *
+ * @author Kao
+ */
 public enum CommandPriority {
     VERY_LOW,
     LOW,
@@ -7,10 +12,13 @@ public enum CommandPriority {
     HIGH,
     VERY_HIGH;
 
-    public final int value;
+    /**
+     * The integer value of the priority level.
+     */
+    public final int priorityInt;
 
     CommandPriority() {
-        this.value = this.ordinal();
+        this.priorityInt = this.ordinal();
     }
 
 }

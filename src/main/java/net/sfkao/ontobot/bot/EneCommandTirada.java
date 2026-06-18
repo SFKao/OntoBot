@@ -7,6 +7,13 @@ import java.time.LocalDate;
 import java.util.Random;
 import java.util.Set;
 
+/**
+ * Implementation of the EneCommand interface that simulates a dice roll (d20).
+ * When executed, it responds with a random number between 1 and 20, simulating a dice roll.
+ * Each user gets a consistent roll for the same day, based on their username and the current date.
+ *
+ * @author Kao
+ */
 @Component
 public class EneCommandTirada implements EneCommand {
 
