@@ -17,6 +17,11 @@ public class EneCommandTirada implements EneCommand {
     }
 
     @Override
+    public CommandPriority getPriority() {
+        return CommandPriority.LOW;
+    }
+
+    @Override
     public BusMessage execute(final BusMessage busMessage) {
         final String today = LocalDate.now().toString();
         final Random random = new Random(busMessage.author().hashCode() + today.hashCode());

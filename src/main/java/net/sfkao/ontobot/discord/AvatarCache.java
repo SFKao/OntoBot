@@ -15,6 +15,9 @@ public class AvatarCache {
     private final Map<String, String> avatarCache = new ConcurrentHashMap<>();
 
     public String get(final String username) {
+        if (username == null) {
+            return null;
+        }
         return this.avatarCache.get(username);
     }
 

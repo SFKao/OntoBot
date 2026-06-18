@@ -7,6 +7,8 @@ import java.util.Set;
 public interface EneCommand {
     Set<String> getKeywords();
 
+    CommandPriority getPriority();
+
     BusMessage execute(BusMessage busMessage);
 
 }

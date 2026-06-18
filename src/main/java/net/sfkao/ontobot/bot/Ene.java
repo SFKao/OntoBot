@@ -45,23 +45,20 @@ public class Ene {
     }
 
     private void processCommand(final BusMessage busMessage) {
-        //Check that only one command triggers
-        EneCommand commandToExecute = null;
-        for (final EneCommand command : this.commands) {
-            for (final String keyword : command.getKeywords()) {
-                if (busMessage.content().toLowerCase().contains(keyword.toLowerCase())) {
-                    if (commandToExecute == null) {
-                        commandToExecute = command;
-                    } else if (commandToExecute != command) {
-                        // More than one command triggered, ignore
-                        return;
-                    }
-                }
-            }
+        final List<EneCommand> matchingCommands = this.commandsThatMatch(busMessage);
+        if (matchingCommands.isEmpty()) {
+            return;
         }
-        if (commandToExecute != null) {
-            final BusMessage response = commandToExecute.execute(busMessage);
-            this.bus.publish(response);
-        }
+        final EneCommand commandToExecute = matchingCommands.get(0);
+        final BusMessage responseMessage = commandToExecute.execute(busMessage);
+        this.bus.publish(responseMessage);
+    }
+
+    private List<EneCommand> commandsThatMatch(final BusMessage busMessage) {
+        return this.commands.stream()
+                .filter(command -> command.getKeywords().stream()
+                        .anyMatch(keyword -> busMessage.content().toLowerCase().contains(keyword.toLowerCase())))
+                .sorted((c1, c2) -> c2.getPriority().ordinal() - c1.getPriority().ordinal())
+                .toList();
     }
 }
