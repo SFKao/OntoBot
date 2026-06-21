@@ -44,7 +44,7 @@ public class DiscordChannelOntoAdapter {
      */
     private static final String NO_AVATAR = "";
 
-    @Value("${discord.onto.webhookurl}")
+    @Value("${DISCORD_ONTO_WEBHOOKURL}")
     private String webhookUrl;
 
     private Snowflake ownWebhookId;

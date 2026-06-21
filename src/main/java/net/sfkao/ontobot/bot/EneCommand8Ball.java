@@ -43,7 +43,7 @@ public class EneCommand8Ball implements EneCommand {
             "Si tienes algun problema nos vemos en los juzgados del Guilty as Sock.",
             "No puedo decirte eso, pero si quieres te puedo dar un consejo de vida: No seas un idiota.",
             "La tortilla de patata es mejor con cebolla.",
-            "La totilla de patata es mejor sin cebolla.",
+            "La tortilla de patata es mejor sin cebolla.",
             "Deberias unirte al servidor de Minecraft. Kao seria muy feliz :3",
             "NO TE COMAS ESOS CACAHUETES!",
             "No se yo, lo que Kao diga.",
@@ -54,12 +54,18 @@ public class EneCommand8Ball implements EneCommand {
             "Bebe agua.",
             "Seguro que a Hacienda le encantará leer eso.",
             "Cuando le regales un monster a Dubsty responderé a tu pregunta.",
-            "No sé sobre eso, pero no te acerques a Rin sin rodilleras porfa."
+            "No sé sobre eso, pero no te acerques a Rin sin rodilleras porfa.",
+            "Rotar una vaca en tu cabeza es gratis y divertido."
     );
 
     @Override
     public Set<String> getKeywords() {
-        return Set.of("8ball", "8-ball", "magic 8 ball", "sabiduria", "conocimiento", "destino", "futuro", "pregunta", "respuesta", "suerte", "crees", "piensas", "opinas", "dices", "afirmas", "negas", "niegas", "rechazas", "aceptas", "apruebas", "desapruebas", "deberia", "tengo", "?");
+        return Set.of("8ball", "8-ball", "magic 8 ball", "sabiduria", "conocimiento",
+                "destino", "futuro", "pregunta", "respuesta", "suerte", "crees", "piensas",
+                "opinas", "dices", "afirmas", "negas", "niegas", "rechazas", "aceptas", "apruebas",
+                "desapruebas", "deberia", "tengo", "?",
+                "opinion", "consejo", "ayuda", "guia", "orientacion", "recomendacion", "sugerencia",
+                "opiniones", "consejos", "ayudas", "guias", "orientaciones", "recomendaciones", "sugerencias");
     }
 
     @Override
