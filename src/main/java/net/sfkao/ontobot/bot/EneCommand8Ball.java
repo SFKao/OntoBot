@@ -75,10 +75,10 @@ public class EneCommand8Ball implements EneCommand {
 
     @Override
     public BusMessage execute(final BusMessage busMessage) {
-        return new BusMessage(Ene.SOURCE_ID, "Ene", "⓼ " + EneCommand8Ball.getRandomResponse(), busMessage.timestamp());
+        return new BusMessage(Ene.SOURCE_ID, "Ene", EneCommand8Ball.getRandomResponse(), busMessage.timestamp());
     }
 
-    private static String getRandomResponse() {
-        return EneCommand8Ball.RESPONSES.get(EneCommand8Ball.RANDOM.nextInt(EneCommand8Ball.RESPONSES.size()));
+    public static String getRandomResponse() {
+        return "⓼ " + EneCommand8Ball.RESPONSES.get(EneCommand8Ball.RANDOM.nextInt(EneCommand8Ball.RESPONSES.size()));
     }
 }
