@@ -8,6 +8,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import net.sfkao.ontobot.bus.BusMessage;
 import net.sfkao.ontobot.bus.MessageBus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -33,22 +34,18 @@ public class DiscordChannelMCAdapter {
                     "ElshOwO", "Elsho"
             );
 
-    public static final String SOURCE_ID =
-            "MC";
+    public static final String SOURCE_ID = "MC";
 
-    /**
-     * The ID of the Discord channel to listen to and send messages to.
-     */
-    private static final Snowflake CHANNEL_ID =
-            Snowflake.of("1480982745214877777");
+    // Mantenemos solo el canal en las properties
+    @Value("${discord.mc.channel-id}")
+    private String channelIdProp;
+
+    private Snowflake channelId;
+
+    // Esta variable se llenará dinámicamente usando el cliente
+    private Snowflake selfBotId;
 
     private MessageChannel channel;
-
-    /**
-     * The ID of the bot itself, used to filter out messages sent by the bot.
-     */
-    private static final Snowflake SELF_BOT_ID =
-            Snowflake.of("1491855143594102845");
 
     private final GatewayDiscordClient client;
     private final MessageBus bus;
@@ -58,8 +55,13 @@ public class DiscordChannelMCAdapter {
      */
     @PostConstruct
     public void init() {
+        // Inicializamos el Snowflake del canal
+        this.channelId = Snowflake.of(this.channelIdProp);
 
-        this.client.getChannelById(DiscordChannelMCAdapter.CHANNEL_ID)
+        // Obtenemos el ID del propio bot directamente desde el cliente de Discord4J
+        this.selfBotId = this.client.getSelfId();
+
+        this.client.getChannelById(this.channelId)
                 .cast(MessageChannel.class)
                 .doOnNext(ch -> {
 
@@ -67,7 +69,7 @@ public class DiscordChannelMCAdapter {
 
                     System.out.println(
                             "Discord channel ready: "
-                                    + DiscordChannelMCAdapter.CHANNEL_ID.asString()
+                                    + this.channelId.asString()
                     );
 
                     this.listenDiscord();
@@ -93,7 +95,7 @@ public class DiscordChannelMCAdapter {
                 .filter(event ->
                         event.getMessage()
                                 .getChannelId()
-                                .equals(DiscordChannelMCAdapter.CHANNEL_ID))
+                                .equals(this.channelId))
                 .filter(event ->
                         !event.getMessage()
                                 .getContent()
@@ -103,7 +105,7 @@ public class DiscordChannelMCAdapter {
                                 .getAuthor()
                                 .map(user ->
                                         !user.getId()
-                                                .equals(DiscordChannelMCAdapter.SELF_BOT_ID))
+                                                .equals(this.selfBotId)) // Filtrará dinámicamente usando el ID obtenido del cliente
                                 .orElse(true))
                 .subscribe(event -> {
 

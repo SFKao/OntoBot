@@ -35,9 +35,11 @@ public class DiscordChannelOntoAdapter {
     public static final String SOURCE_ID =
             "DC";
 
-    private static final Snowflake CHANNEL_ID =
-            Snowflake.of("1492043447639740546");
+    // Mantenemos solo el canal en las properties
+    @Value("${discord.onto.channel-id}")
+    private String channelIdProp;
 
+    private Snowflake CHANNEL_ID;
 
     /**
      * Sentinel stored in cache when a username has no matching guild member.
@@ -62,6 +64,8 @@ public class DiscordChannelOntoAdapter {
     @PostConstruct
     public void init() {
 
+        this.CHANNEL_ID = Snowflake.of(this.channelIdProp);
+
         final String[] parts = this.webhookUrl.split("/");
         this.ownWebhookId = Snowflake.of(parts[parts.length - 2]);
 
@@ -70,7 +74,7 @@ public class DiscordChannelOntoAdapter {
                 .build();
 
         // Fetch the guild once so we can search members for avatar lookup.
-        this.client.getChannelById(DiscordChannelOntoAdapter.CHANNEL_ID)
+        this.client.getChannelById(this.CHANNEL_ID)
                 .cast(GuildMessageChannel.class)
                 .flatMap(GuildMessageChannel::getGuild)
                 .subscribe(
@@ -103,7 +107,7 @@ public class DiscordChannelOntoAdapter {
         this.client.on(MessageCreateEvent.class)
                 .filter(event -> event.getMessage()
                         .getChannelId()
-                        .equals(DiscordChannelOntoAdapter.CHANNEL_ID))
+                        .equals(this.CHANNEL_ID))
                 .filter(event -> event.getMessage()
                         .getWebhookId()
                         .map(id -> !id.equals(this.ownWebhookId))

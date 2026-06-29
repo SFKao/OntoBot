@@ -30,6 +30,9 @@ public class InvokeKnowledgeCommand implements DiscordCommandEvent<ChatInputInte
 
     @Override
     public Mono<Void> execute(final ChatInputInteractionEvent event) {
+        if (!event.getCommandName().equals(this.getCommandName())) {
+            return Mono.empty();
+        }
         return event.reply(
                 EneCommand8Ball.getRandomResponse()
         ).then();
