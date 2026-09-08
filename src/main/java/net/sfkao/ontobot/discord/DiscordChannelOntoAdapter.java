@@ -13,6 +13,7 @@ import discord4j.rest.util.Image;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import net.sfkao.ontobot.bus.BusMessage;
 import net.sfkao.ontobot.bus.MessageBus;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,7 @@ import java.time.Instant;
  */
 @Component
 @RequiredArgsConstructor
+@Log4j2
 public class DiscordChannelOntoAdapter {
 
     public static final String SOURCE_ID =
@@ -159,10 +161,19 @@ public class DiscordChannelOntoAdapter {
             return Mono.empty();
         }
 
-        return this.resolveAvatarUrl(message.author())
+
+        final String author;
+        if (message.author().toLowerCase().contains("discord")) {
+            // Avoid sending messages that contain "discord" in the author name to prevent potential loops or unwanted behavior.
+            author = message.author().replaceAll("(?i)discord", "DC");
+        } else {
+            author = message.author();
+        }
+
+        return this.resolveAvatarUrl(author)
                 .flatMap(avatarUrl -> {
                     final WebhookMessageBuilder builder = new WebhookMessageBuilder()
-                            .setUsername(message.author())
+                            .setUsername(author)
                             .setContent(message.content());
 
                     if (!avatarUrl.equals(DiscordChannelOntoAdapter.NO_AVATAR)) {

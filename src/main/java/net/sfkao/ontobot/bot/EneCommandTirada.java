@@ -4,6 +4,7 @@ import net.sfkao.ontobot.bus.BusMessage;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 
@@ -30,9 +31,27 @@ public class EneCommandTirada implements EneCommand {
 
     @Override
     public BusMessage execute(final BusMessage busMessage) {
+        final Optional<String> overrideResponse = EneCommandTirada.override(busMessage.author());
+        if (overrideResponse.isPresent()) {
+            return new BusMessage(Ene.SOURCE_ID, "Ene", overrideResponse.get(), busMessage.timestamp());
+        }
         final String today = LocalDate.now().toString();
         final Random random = new Random(busMessage.author().hashCode() + today.hashCode());
-        final String responseContent = "Tu tirada del dado de hoy es...  ¡" + (random.nextInt(20) + 1 + "!");
+        final int roll = random.nextInt(20) + 1;
+        final int roll2 = random.nextInt(20) + 1;
+        final String responseContent = "Tu tirada del dado de hoy es...  ¡" + roll + "!";
         return new BusMessage(Ene.SOURCE_ID, "Ene", responseContent, busMessage.timestamp());
     }
+
+    private static Optional<String> override(final String nombre) {
+        if (nombre.equalsIgnoreCase("Neo")) {
+            //return Optional.of("Tu tirada del dado de hoy es...  ¡4! Agarramela un rato Neo!");
+        }
+        if (nombre.equalsIgnoreCase("KusturiCee_")) {
+            //return Optional.of("¡Por maleducada! ¡1!");
+        }
+
+        return Optional.empty();
+    }
+
 }

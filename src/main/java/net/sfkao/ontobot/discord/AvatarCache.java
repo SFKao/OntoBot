@@ -30,6 +30,10 @@ public class AvatarCache {
         return this.avatarCache.get(username);
     }
 
+    public void clearForUsername(final String username) {
+        this.avatarCache.remove(username);
+    }
+
     public void put(final String username, final String url) {
         this.avatarCache.put(username, url);
     }

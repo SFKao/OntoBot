@@ -49,6 +49,8 @@ public class OntoAdapter {
 
     private final MessageBus bus;
 
+    private final OntoUsernameToDiscordUsernameMapper ontoUsernameToDiscordUsernameMapper;
+
     /**
      * The WebSocket client used to connect to the On-Together WebSocket server.
      */
@@ -196,11 +198,12 @@ public class OntoAdapter {
             }
         }
 
-        final String author;
+        String author;
         if (content.startsWith("[SYS]")) {
             author = "Onto";
         } else {
             author = content.split(":")[0].replace("**", "").trim();
+            author = this.ontoUsernameToDiscordUsernameMapper.mapOntoUsernameToDiscordUsernameOrObtainDefault(author);
             content = content.substring(content.indexOf(":") + 1).trim();
         }
 
